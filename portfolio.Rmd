@@ -1,0 +1,269 @@
+---
+title: "Portfolio"
+author: "Guilherme Csorgo"
+date: "02/08/2020"
+output: 
+  flexdashboard::flex_dashboard:
+    source_code: https://github.com/walkerke/neighborhood_diversity
+    social: menu
+    #css: theme-csorgo.css
+    type: inverse
+---
+
+```{r setup, include=FALSE}
+
+rm(list = ls())
+
+set.seed(1064)
+
+library(ggplot2)
+library(dplyr)
+library(data.table)
+library(knitr)
+library(tidyverse)
+library(lubridate)
+library(dygraphs)
+library(quantmod)
+library(plotly)
+library(flexdashboard)
+
+games = fread('vgsales.csv')
+
+games_df <- as.data.frame(games)
+
+attach(games_df)
+
+games_df$Platform <- factor(Platform)
+games_df$Genre <- factor(Genre)
+games_df$Publisher <- factor(Publisher)
+games_df$Year <- as.numeric(Year)
+
+```
+
+OVERVIEW
+=======================================================================
+
+Column
+-------------------------------------
+
+> Here, we get some basic information about the dataset, such as the data types, some rows, etc.
+
+### **Data structure** {data-height=500}
+```{r}
+
+str(games_df)
+
+```
+
+### **First 5 rows** {data-height=350}
+```{r}
+
+hd <- head(games_df, n = 5)
+
+hd$Name = paste(substr(hd$Name, 0, 20), "...")
+
+kable(hd)
+
+```
+
+### **Last 5 rows** {data-height=350}
+```{r}
+
+tl <- tail(games_df, n = 5)
+
+tl$Name = paste(substr(tl$Name, 0, 17), "...")
+
+kable(tl)
+
+```
+
+Column
+-------------------------------------
+
+### **Summary**
+```{r}
+
+summary(games_df)
+
+```
+
+EDA
+=======================================================================
+
+Column
+-------------------------------------
+
+### **Sales by year** {data-height=500}
+```{r}
+
+games_df %>%
+  arrange(Year) %>%
+  ggplot(aes(x=Year)) +
+  geom_histogram(fill = rgb(189, 147, 249, 210, maxColorValue = 255), color="white")
+
+```
+
+### **Sales by publisher**
+```{r}
+
+sales_by_publisher <- games_df %>% 
+                      group_by(Publisher) %>%
+                      summarise(
+                        Sales = sum(Global_Sales),
+                        Count = n(),
+                        Publisher = first(paste(substr(Publisher, 0, 25), '...'))
+                      ) %>% 
+                      arrange(desc(Sales)) %>% 
+                      head(30)
+
+sales_by_publisher %>%
+  mutate(Publisher = fct_reorder(Publisher, desc(Sales))) %>%
+  ggplot(aes(x = Publisher, y = Sales)) +
+  geom_bar(stat = "identity", fill = rgb(189, 147, 249, 210, maxColorValue = 255)) +
+  theme(axis.text.x=element_text(angle=90, hjust=1))
+
+```
+
+Column
+-------------------------------------
+
+### **Sales by Genre** {data-height=500}
+```{r}
+
+sales_by_genre <- games_df %>%
+                  group_by(Genre) %>%
+                  summarise(
+                    Genre = first(Genre),
+                    Count = n(),
+                    Value = median(Global_Sales)
+                  )
+
+sales_by_genre %>%
+  mutate(Genre = fct_reorder(Genre, desc(Value))) %>%
+  ggplot(aes(x = Genre, y = Value)) +
+  geom_bar(stat = "identity") +
+  theme(axis.text.x=element_text(angle=90, hjust=1))
+
+```
+
+### **A different approach for Sales by Genre** {data-height=500}
+```{r}
+
+library(fmsb)
+
+sales_by_genre <- games_df %>%
+                  group_by(Genre) %>%
+                  summarise(
+                    Genre = first(Genre),
+                    Count = n()
+                  )
+
+genre_count <- nrow(sales_by_genre)
+max_value <- max(sales_by_genre$Count)
+
+matrix <- matrix(1, nrow = 1, ncol = genre_count)
+
+colnames(matrix) <- sales_by_genre$Genre
+rownames(matrix) <- "Amount"
+matrix["Amount",] <- sales_by_genre$Count
+matrix <- as.data.frame(matrix)
+matrix <- rbind(rep(max(sales_by_genre$Count), genre_count), rep(0, genre_count), matrix)
+
+radarchart(matrix, 
+           pcol = rgb(255, 121, 198, 240, maxColorValue = 255), pfcol=rgb(255, 121, 198, 180, maxColorValue = 255), plwd=3,
+           axistype=1, cglcol="darkgrey", cglty=1, axislabcol="darkgrey", caxislabels=seq(0, max_value, max_value / 5))
+
+```
+
+
+GOING DEEPER
+=======================================================================
+
+> Let's see the overall sales by country. Notice that the sales for EU and NA are almost equal regarding the genre. Japan use to sale more RPG games than Action, which is common in other regions
+
+Column
+-------------------------------------
+
+### **North America Sales by Genre** {data-height=500}
+```{r}
+
+games_df %>%
+  group_by(Genre) %>%
+  summarise(
+    Genre = first(Genre), 
+    Sales = sum(NA_Sales)
+  ) %>%
+  ggplot(aes(x = Genre, y = Sales)) +
+    geom_bar(stat="identity", fill= rgb(255, 121, 198, 180, maxColorValue = 255), width=.6) +
+    coord_flip() +
+    ylab("Sales") +
+    xlab("Genre") +
+    theme_bw()
+
+```
+
+### **Europe Sales by Genre** {data-height=500}
+```{r}
+
+games_df %>%
+  group_by(Genre) %>%
+  summarise(
+    Genre = first(Genre), 
+    Sales = sum(EU_Sales)
+  ) %>%
+  ggplot(aes(x = Genre, y = Sales)) +
+    geom_bar(stat="identity", fill= rgb(51, 0, 102, 180, maxColorValue = 255), width=.6) +
+    coord_flip() +
+    ylab("Sales") +
+    xlab("Genre") +
+    theme_bw()
+
+```
+
+Column
+-------------------------------------
+
+### **Japan Sales by Genre** {data-height=500}
+```{r}
+
+games_df %>%
+  group_by(Genre) %>%
+  summarise(
+    Genre = first(Genre), 
+    Sales = sum(JP_Sales)
+  ) %>%
+  ggplot(aes(x = Genre, y = Sales)) +
+    geom_bar(stat="identity", fill= rgb(255, 128, 0, 180, maxColorValue = 255), width=.6) +
+    coord_flip() +
+    ylab("Sales") +
+    xlab("Genre") +
+    theme_bw()
+
+```
+
+### **Other Sales by Genre** {data-height=500}
+```{r}
+
+games_df %>%
+  group_by(Genre) %>%
+  summarise(
+    Genre = first(Genre), 
+    Sales = sum(Other_Sales)
+  ) %>%
+  ggplot(aes(x = Genre, y = Sales)) +
+    geom_bar(stat="identity", fill= rgb(0, 255, 255, 180, maxColorValue = 255), width=.6) +
+    coord_flip() +
+    ylab("Sales") +
+    xlab("Genre") +
+    theme_bw()
+
+```
+
+
+
+
+
+
+
+
+

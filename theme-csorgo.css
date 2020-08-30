@@ -1,0 +1,59 @@
+body {
+  padding-top: 60px;
+  background: rgb(24, 26, 27);
+  color: #CECECE;
+}
+
+.section {
+  background-color: rgb(29, 33, 37)
+}
+
+.section > .chart-title {
+  color: #CECECE;
+}
+
+.section > .chart-stage > .chart-shim {
+  background-color: rgb(29, 33, 37)
+}
+
+.section.sidebar {
+  top: 51px;
+  background-color: rgb(29, 33, 37);
+}
+
+.value-box {
+  color: #f9f9f9;
+}
+
+.bg-primary {
+  background-color: rgb(29, 33, 37);
+}
+
+.nav-tabs-custom > .nav-tabs > li.active {
+  border-top-color: rgb(29, 33, 37);
+}
+
+.bg-info {
+  background-color: rgba(153, 84, 187, 0.7);
+}
+
+.bg-warning {
+  background-color: rgba(255, 117, 24, 0.7);
+}
+
+.bg-danger {
+  background-color: rgba(255, 0, 57, 0.7);
+}
+
+.bg-success {
+  background-color: rgba(63, 182, 24, 0.7);
+}
+
+.chart-title {
+  font-weight: 500;
+}
+
+.nav-tabs-custom > .nav-tabs > li > a,
+.nav-tabs-custom > .nav-tabs > li > a:active {
+  font-weight: 500;
+}
