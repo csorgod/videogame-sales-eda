@@ -4,7 +4,7 @@ author: "Guilherme Csorgo"
 date: "02/08/2020"
 output: 
   flexdashboard::flex_dashboard:
-    source_code: https://github.com/walkerke/neighborhood_diversity
+    source_code: https://github.com/csorgod/videogame-sales-eda
     social: menu
     #css: theme-csorgo.css
     type: inverse
