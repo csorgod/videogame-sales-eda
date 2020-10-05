@@ -176,6 +176,38 @@ radarchart(matrix,
 ```
 
 
+Column
+-------------------------------------
+
+### **Sales by country through the years** {data-height=500}
+```{r}
+
+data <- games_df %>%
+        group_by(Year) %>%
+        summarise(
+          Year = first(Year),
+          Count = n(),
+          NA_Sales = sum(NA_Sales),
+          EU_Sales = sum(EU_Sales),
+          JP_Sales = sum(JP_Sales),
+          Other_Sales = sum(Other_Sales),
+          Global_Sales = sum(Global_Sales)
+        )
+  
+data %>%
+  ggplot(aes(x = Year, y = Global_Sales)) +
+  geom_area()
+
+
+```
+
+```{r}
+
+
+
+```
+
+
 GOING DEEPER
 =======================================================================
 
